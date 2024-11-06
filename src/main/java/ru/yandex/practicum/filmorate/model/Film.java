@@ -2,33 +2,23 @@ package ru.yandex.practicum.filmorate.model;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
+import ru.yandex.practicum.filmorate.annotations.DateAfter1895;
+
 import java.time.LocalDate;
 
 @Data
 public class Film {
     private int id;
-    //@NotNull
-    //@NotBlank
+    @NotNull(message = "Имя не может быть null")
+    @NotBlank(message = "Имя не может быть пустым")
     private String name;
-    //@Size(max = 200)
+    @Size(max = 200, message = "Максимальная длина описания - 200 символов")
     private String description;
+    @DateAfter1895
     private LocalDate releaseDate;
+    @Positive(message = "Продолжительность фильма должна быть положительным числом")
     private int duration;
-
-    public void validate() {
-        if (name == null || name.isBlank()) {
-            throw new IllegalArgumentException("Название не может быть пустым");
-        }
-        if (description != null && description.length() > 200) {
-            throw new IllegalArgumentException("Максимальная длина описания - 200 символов");
-        }
-        if (releaseDate == null || releaseDate.isAfter(LocalDate.now()) || releaseDate.isBefore(LocalDate.of(1895, 12, 28))) {
-            throw new IllegalArgumentException("Дата релиза должна быть между 28 декабря 1895 года и сегодняшним днём");
-        }
-        if (duration <= 0) {
-            throw new IllegalArgumentException("Продолжительность фильма должна быть положительным числом");
-        }
-    }
 }

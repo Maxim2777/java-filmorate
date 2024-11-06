@@ -1,12 +1,14 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/users")
@@ -16,8 +18,7 @@ public class UserController {
     private int nextUserId = 1;
 
     @PostMapping
-    public User createUser(@RequestBody User user) {
-        user.validate();
+    public User createUser(@Valid @RequestBody User user) {
         user.setId(nextUserId);
         log.info("Создание пользователя: {}", user);
         if (user.getName() == null || user.getName().isBlank()) {
@@ -29,20 +30,19 @@ public class UserController {
     }
 
     @PutMapping
-    public User updateUser(@RequestBody User user) {
-        user.validate();
+    public User updateUser(@Valid @RequestBody User user) {
         log.info("Обновление пользователя: {}", user);
         if (users.containsKey(user.getId())) {
             users.put(user.getId(), user);
         } else {
-            throw new IllegalArgumentException("Пользователь с таким id не найден");
+            throw new ValidationException("Пользователь с таким id не найден");
         }
         return user;
     }
 
     @GetMapping
-    public List<User> getAllUsers() {
+    public Collection<User> getAllUsers() {
         log.info("Получение всех пользователей");
-        return users.values().stream().collect(Collectors.toList());
+        return users.values();
     }
 }
