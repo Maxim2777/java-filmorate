@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -18,10 +19,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @SpringBootTest
 public class FilmorateApplicationTests {
 
-    private final Validator validator;
+    ValidatorFactory factory;
+    private Validator validator;
 
-    public FilmorateApplicationTests() {
-        ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+    @BeforeEach
+    void setUp() {
+        factory = Validation.buildDefaultValidatorFactory();
         validator = factory.getValidator();
     }
 
