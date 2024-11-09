@@ -6,6 +6,7 @@ import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -43,6 +44,6 @@ public class UserController {
     @GetMapping
     public Collection<User> getAllUsers() {
         log.info("Получение всех пользователей");
-        return users.values();
+        return new ArrayList<>(users.values());
     }
 }
