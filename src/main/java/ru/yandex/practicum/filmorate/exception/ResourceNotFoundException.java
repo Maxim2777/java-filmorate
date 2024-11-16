@@ -1,12 +1,15 @@
 package ru.yandex.practicum.filmorate.exception;
 
 public class ResourceNotFoundException extends RuntimeException {
-    public ResourceNotFoundException(String message) {
-        super(message);
+    private final Object body;
+
+    public ResourceNotFoundException(Object body) {
+        super();
+        this.body = body;
     }
 
-    public ResourceNotFoundException(String message, Throwable cause) {
-        super(message, cause);
+    public Object getBody() {
+        return body;
     }
 }
 

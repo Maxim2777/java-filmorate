@@ -21,7 +21,7 @@ public class InMemoryUserStorage implements UserStorage {
     @Override
     public User updateUser(User user) {
         if (!users.containsKey(user.getId())) {
-            throw new ResourceNotFoundException("Пользователь не найден");
+            throw new ResourceNotFoundException(user);
         }
         users.put(user.getId(), user);
         return user;
