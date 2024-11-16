@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.storage;
 
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.exception.ResourceNotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.util.*;
@@ -20,7 +21,7 @@ public class InMemoryFilmStorage implements FilmStorage {
     @Override
     public Film updateFilm(Film film) {
         if (!films.containsKey(film.getId())) {
-            throw new RuntimeException("Film not found");
+            throw new ResourceNotFoundException("Фильм не найден");
         }
         films.put(film.getId(), film);
         return film;
