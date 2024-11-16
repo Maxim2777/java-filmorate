@@ -8,10 +8,12 @@ import lombok.Data;
 import ru.yandex.practicum.filmorate.annotations.DateAfter1895;
 
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 @Data
 public class Film {
-    private int id;
+    private long id;
     @NotNull(message = "Имя не может быть null")
     @NotBlank(message = "Имя не может быть пустым")
     private String name;
@@ -21,4 +23,6 @@ public class Film {
     private LocalDate releaseDate;
     @Positive(message = "Продолжительность фильма должна быть положительным числом")
     private int duration;
+    // Поле для хранения лайков
+    private Set<Long> likes = new HashSet<>();
 }
