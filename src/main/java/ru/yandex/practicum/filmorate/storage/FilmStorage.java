@@ -6,15 +6,14 @@ import java.util.List;
 import java.util.Optional;
 
 public interface FilmStorage {
-    // Добавить новый фильм
-    Film addFilm(Film film);
-    // Обновить существующий фильм
-    Film updateFilm(Film film);
-    // Получить фильм по его ID
-    Optional<Film> getFilmById(Long id);
-    // Удалить фильм по ID
-    void deleteFilm(Long id);
-    // Получить все фильмы
-    List<Film> getAllFilms();
+    Film addFilm(Film film);               // Добавить новый фильм
+
+    Film updateFilm(Film film);            // Обновить существующий фильм
+
+    Optional<Film> getFilmById(Long id);   // Получить фильм по его ID
+
+    void deleteFilm(Long id);              // Удалить фильм по ID
+
+    List<Film> getAllFilms();              // Получить все фильмы
 }
 
