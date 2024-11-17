@@ -1,5 +1,8 @@
 package ru.yandex.practicum.filmorate.exception;
 
+import lombok.Getter;
+
+@Getter
 public class ResourceNotFoundException extends RuntimeException {
     private final ErrorResponse errorResponse;
 
@@ -8,9 +11,6 @@ public class ResourceNotFoundException extends RuntimeException {
         this.errorResponse = new ErrorResponse(message);
     }
 
-    public ErrorResponse getErrorResponse() {
-        return errorResponse;
-    }
 }
 
 
