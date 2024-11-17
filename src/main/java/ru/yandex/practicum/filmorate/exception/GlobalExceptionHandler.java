@@ -30,13 +30,13 @@ public class GlobalExceptionHandler {
     }
 
     // Обработчик исключения MethodArgumentNotValidException для ошибок валидации аргументов.
-    // Возвращает карту с полями и ошибками валидации и HTTP статус 400 (BAD REQUEST).
+    // Возвращает Map с полями и ошибками валидации и HTTP статус 400 (BAD REQUEST).
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
         // Создаем Map для хранения ошибок.
         Map<String, String> errors = new HashMap<>();
 
-        // Проходим по всем ошибкам и добавляем их в карту с указанием имени поля и сообщения об ошибке.
+        // Проходим по всем ошибкам и добавляем их в Map с указанием имени поля и сообщения об ошибке.
         ex.getBindingResult().getAllErrors().forEach(error -> {
             String fieldName = ((FieldError) error).getField(); // Имя поля, в котором произошла ошибка.
             String errorMessage = error.getDefaultMessage(); // Сообщение об ошибке.

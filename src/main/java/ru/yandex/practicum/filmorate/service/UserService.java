@@ -19,11 +19,11 @@ public class UserService {
 
     // Метод добавления друга.
     public User addFriend(Long userId, Long friendId) {
-        // Проверка наличия пользователя с заданным userId.
+        // Проверка наличия пользователя (userId).
         User user = userStorage.getUserById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Пользователь с id " + userId + " не найден"));
 
-        // Проверка наличия друга с заданным friendId.
+        // Проверка наличия друга (friendId).
         User friend = userStorage.getUserById(friendId)
                 .orElseThrow(() -> new ResourceNotFoundException("Друг с id " + friendId + " не найден"));
 
@@ -40,11 +40,11 @@ public class UserService {
 
     // Метод удаления друга.
     public User removeFriend(Long userId, Long friendId) {
-        // Проверка наличия пользователя с заданным userId.
+        // Проверка наличия пользователя (userId).
         User user = userStorage.getUserById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Пользователь с id " + userId + " не найден"));
 
-        // Проверка наличия друга с заданным friendId.
+        // Проверка наличия друга (otherId).
         User friend = userStorage.getUserById(friendId)
                 .orElseThrow(() -> new ResourceNotFoundException("Друг с id " + friendId + " не найден"));
 
@@ -61,11 +61,11 @@ public class UserService {
 
     // Метод получения списка общих друзей двух пользователей.
     public List<User> getCommonFriends(Long userId, Long otherId) {
-        // Проверка наличия первого пользователя с заданным userId.
+        // Проверка наличия первого пользователя (userId).
         User user = userStorage.getUserById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Пользователь с id " + userId + " не найден"));
 
-        // Проверка наличия второго пользователя с заданным otherId.
+        // Проверка наличия второго пользователя (otherId).
         User other = userStorage.getUserById(otherId)
                 .orElseThrow(() -> new ResourceNotFoundException("Пользователь с id " + otherId + " не найден"));
 
