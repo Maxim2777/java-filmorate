@@ -29,6 +29,9 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public Optional<User> getUserById(Long id) {
+        if (!users.containsKey(id)) {
+            throw new ResourceNotFoundException("Пользователь c" + id + "не найден");
+        }
         return Optional.ofNullable(users.get(id));
     }
 
