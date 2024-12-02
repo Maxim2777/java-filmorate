@@ -8,10 +8,12 @@ import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 @Data
 public class User {
-    private int id;
+    private long id;
     @NotNull(message = "Электронная почта не может быть null")
     @NotBlank(message = "Электронная почта не может быть пустой")
     @Email(message = "Неверный формат электронной почты")
@@ -24,4 +26,6 @@ public class User {
     @NotNull(message = "Дата рождения не может быть null")
     @Past(message = "Дата рождения не может быть в будущем")
     private LocalDate birthday;
+    // Поле для хранения друзей
+    private Set<Long> friends = new HashSet<>();
 }
