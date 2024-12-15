@@ -4,11 +4,14 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import ru.yandex.practicum.filmorate.annotations.DateAfter1895;
 
 import java.time.LocalDate;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Data
@@ -25,4 +28,8 @@ public class Film {
     private int duration;
     // Поле для хранения лайков
     private Set<Long> likes = new HashSet<>();
+    // рейтинг MPA
+    private MpaRating mpa;
+    // жанры
+    private List<Genre> genres;
 }

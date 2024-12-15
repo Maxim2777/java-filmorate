@@ -2,11 +2,13 @@ package ru.yandex.practicum.filmorate.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ResourceNotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
+import ru.yandex.practicum.filmorate.storage.db.FilmDbStorage;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -18,7 +20,10 @@ public class FilmService {
     private final UserStorage userStorage;
 
     @Autowired
-    public FilmService(FilmStorage filmStorage, UserStorage userStorage) {
+    public FilmService(
+            @Qualifier("filmDbStorage") FilmStorage filmStorage, // Используем FilmDbStorage
+            @Qualifier("userDbStorage") UserStorage userStorage  // Используем UserDbStorage
+    ) {
         this.filmStorage = filmStorage;
         this.userStorage = userStorage;
     }
@@ -50,33 +55,47 @@ public class FilmService {
 
     // Добавление лайка фильму
     public void addLike(Long filmId, Long userId) {
-        log.info("Проверка наличия фильма, для добавления лайка");
+        log.info("Проверка наличия фильма для добавления лайка");
         Film film = filmStorage.getFilmById(filmId)
                 .orElseThrow(() -> new ResourceNotFoundException("Фильм с id " + filmId + " не найден"));
 
-        log.info("Проверка наличия пользователя, для добавления лайка");
+        log.info("Проверка наличия пользователя для добавления лайка");
         userStorage.getUserById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Пользователь с id " + userId + " не найден"));
 
         log.info("Добавление лайка");
-        film.getLikes().add(userId);
-        filmStorage.updateFilm(film);
+        if (filmStorage instanceof FilmDbStorage) {
+            // Если используется FilmDbStorage, обновляем таблицу likes
+            ((FilmDbStorage) filmStorage).addLike(filmId, userId);
+        } else {
+            // Если используется InMemoryFilmStorage, обновляем объект Film
+            film.getLikes().add(userId);
+            filmStorage.updateFilm(film);
+        }
+
         log.info("Пользователь с id {} добавил лайк фильму с id {}", userId, filmId);
     }
 
     // Удаление лайка у фильма
     public void removeLike(Long filmId, Long userId) {
-        log.info("Проверка наличия фильма, для удаления лайка");
+        log.info("Проверка наличия фильма для удаления лайка");
         Film film = filmStorage.getFilmById(filmId)
                 .orElseThrow(() -> new ResourceNotFoundException("Фильм с id " + filmId + " не найден"));
 
-        log.info("Проверка наличия пользователя, для удаления лайка");
+        log.info("Проверка наличия пользователя для удаления лайка");
         userStorage.getUserById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Пользователь с id " + userId + " не найден"));
 
         log.info("Удаление лайка");
-        film.getLikes().remove(userId);
-        filmStorage.updateFilm(film);
+        if (filmStorage instanceof FilmDbStorage) {
+            // Если используется FilmDbStorage, удаляем запись из таблицы likes
+            ((FilmDbStorage) filmStorage).removeLike(filmId, userId);
+        } else {
+            // Если используется InMemoryFilmStorage, обновляем объект Film
+            film.getLikes().remove(userId);
+            filmStorage.updateFilm(film);
+        }
+
         log.info("Пользователь с id {} удалил лайк у фильма с id {}", userId, filmId);
     }
 
