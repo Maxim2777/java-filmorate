@@ -29,5 +29,6 @@ public class Film {
     // рейтинг MPA
     private MpaRating mpa;
     // жанры
-    private List<Genre> genres;
+    private Set<Genre> genres = new HashSet<>();
+
 }
