@@ -8,6 +8,7 @@ import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.GenreStorage;
 
 import java.util.List;
+import java.util.Set;
 
 @Service
 @Slf4j
@@ -19,7 +20,7 @@ public class GenreService {
         this.genreStorage = genreStorage;
     }
 
-    public void validateGenres(List<Genre> genres) {
+    public void validateGenres(Set<Genre> genres) {
         if (genres != null && !genres.isEmpty()) {
             for (Genre genre : genres) {
                 if (genre.getId() == null) {
