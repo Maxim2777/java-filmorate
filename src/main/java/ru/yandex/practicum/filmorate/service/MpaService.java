@@ -12,12 +12,20 @@ import java.util.List;
 @Service
 @Slf4j
 public class MpaService {
-
     private final MpaStorage mpaStorage;
 
     @Autowired
     public MpaService(MpaStorage mpaStorage) {
         this.mpaStorage = mpaStorage;
+    }
+
+    public void validateMpa(MpaRating mpa) {
+        if (mpa != null && mpa.getId() != null) {
+            boolean exists = mpaStorage.getMpaById(mpa.getId()).isPresent();
+            if (!exists) {
+                throw new IllegalArgumentException("MPA с id " + mpa.getId() + " не существует");
+            }
+        }
     }
 
     public List<MpaRating> getAllMpa() {
@@ -31,3 +39,4 @@ public class MpaService {
                 .orElseThrow(() -> new ResourceNotFoundException("MPA рейтинг с id " + id + " не найден"));
     }
 }
+

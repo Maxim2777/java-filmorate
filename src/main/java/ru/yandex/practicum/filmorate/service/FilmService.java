@@ -18,42 +18,66 @@ import java.util.stream.Collectors;
 public class FilmService {
     private final FilmStorage filmStorage;
     private final UserStorage userStorage;
+    private final MpaService mpaService;
+    private final GenreService genreService;
 
     @Autowired
     public FilmService(
-            @Qualifier("filmDbStorage") FilmStorage filmStorage, // Используем FilmDbStorage
-            @Qualifier("userDbStorage") UserStorage userStorage  // Используем UserDbStorage
+            @Qualifier("filmDbStorage") FilmStorage filmStorage,
+            @Qualifier("userDbStorage") UserStorage userStorage,
+            MpaService mpaService,
+            GenreService genreService
     ) {
         this.filmStorage = filmStorage;
         this.userStorage = userStorage;
+        this.mpaService = mpaService;
+        this.genreService = genreService;
     }
 
     public Film addFilm(Film film) {
         log.info("Начало добавления фильма: {}", film);
-        return filmStorage.addFilm(film);
+
+        // Проверяем MPA и жанры перед добавлением фильма
+        mpaService.validateMpa(film.getMpa());
+        genreService.validateGenres(film.getGenres());
+
+        // Добавляем фильм в хранилище
+        Film addedFilm = filmStorage.addFilm(film);
+        log.info("Фильм добавлен успешно: {}", addedFilm);
+
+        return addedFilm;
     }
 
     public Film updateFilm(Film film) {
         log.info("Начало обновления фильма: {}", film);
+
+        // Проверяем, существует ли фильм
         if (filmStorage.getFilmById(film.getId()).isEmpty()) {
-            log.error("Ошибка обновления. Фильм с id {} не найден", film.getId());
             throw new ResourceNotFoundException("Фильм с id " + film.getId() + " не найден");
         }
-        return filmStorage.updateFilm(film);
+
+        // Проверяем MPA и жанры перед обновлением фильма
+        mpaService.validateMpa(film.getMpa());
+        genreService.validateGenres(film.getGenres());
+
+        // Обновляем фильм в хранилище
+        Film updatedFilm = filmStorage.updateFilm(film);
+        log.info("Фильм обновлен успешно: {}", updatedFilm);
+
+        return updatedFilm;
     }
 
     public Film getFilmById(Long id) {
-        log.info("Начало получения фильма с id: {}", id);
+        log.info("Получение фильма с id: {}", id);
         return filmStorage.getFilmById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Фильм с id " + id + " не найден"));
     }
 
     public List<Film> getAllFilms() {
-        log.info("Начало получения всех фильмов");
+        log.info("Получение всех фильмов");
         return filmStorage.getAllFilms();
     }
 
-    // Добавление лайка фильму
     public void addLike(Long filmId, Long userId) {
         log.info("Проверка наличия фильма для добавления лайка");
         Film film = filmStorage.getFilmById(filmId)
@@ -76,7 +100,6 @@ public class FilmService {
         log.info("Пользователь с id {} добавил лайк фильму с id {}", userId, filmId);
     }
 
-    // Удаление лайка у фильма
     public void removeLike(Long filmId, Long userId) {
         log.info("Проверка наличия фильма для удаления лайка");
         Film film = filmStorage.getFilmById(filmId)
@@ -99,14 +122,13 @@ public class FilmService {
         log.info("Пользователь с id {} удалил лайк у фильма с id {}", userId, filmId);
     }
 
-    // Получение списка самых популярных фильмов
     public List<Film> getMostPopularFilms(int count) {
         log.info("Начало получения {} самых популярных фильмов", count);
-        log.info("Получение всех фильмов");
         List<Film> films = filmStorage.getAllFilms();
-        log.info("Сортировка фильмов по популярности");
+
+        log.info("Сортировка фильмов по количеству лайков");
         films.sort((f1, f2) -> Integer.compare(f2.getLikes().size(), f1.getLikes().size()));
-        log.info("Отделение {} самых популярных", count);
+
         return films.stream()
                 .limit(count)
                 .collect(Collectors.toList());
