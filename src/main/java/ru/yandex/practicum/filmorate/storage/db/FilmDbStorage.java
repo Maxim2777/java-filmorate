@@ -11,6 +11,7 @@ import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 
@@ -117,6 +118,11 @@ public class FilmDbStorage implements FilmStorage {
         film.setDescription(rs.getString("description"));
         film.setReleaseDate(rs.getDate("release_date").toLocalDate());
         film.setDuration(rs.getInt("duration"));
+
+        // Запрос для получения лайков
+        String likesSql = "SELECT user_id FROM likes WHERE film_id = ?";
+        List<Long> likes = jdbcTemplate.queryForList(likesSql, Long.class, film.getId());
+        film.setLikes(new HashSet<>(likes));
 
         return film;
     }
