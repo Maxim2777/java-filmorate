@@ -20,6 +20,7 @@ public class MpaService {
     }
 
     public void validateMpa(MpaRating mpa) {
+        log.info("Проверка существования MPA");
         if (mpa != null && mpa.getId() != null) {
             boolean exists = mpaStorage.getMpaById(mpa.getId()).isPresent();
             if (!exists) {

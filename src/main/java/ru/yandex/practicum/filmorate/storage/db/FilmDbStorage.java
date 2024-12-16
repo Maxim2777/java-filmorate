@@ -32,35 +32,34 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film addFilm(Film film) {
+        log.debug("Добавление фильма: {}", film);
         String sql = "INSERT INTO films (name, description, release_date, duration) VALUES (?, ?, ?, ?)";
         String[] generatedColumns = {"film_id"}; // Указываем столбец сгенерированного ключа
 
         try (Connection connection = jdbcTemplate.getDataSource().getConnection();
              PreparedStatement statement = connection.prepareStatement(sql, generatedColumns)) {
 
-            // Устанавливаем параметры запроса
             statement.setString(1, film.getName());
             statement.setString(2, film.getDescription());
             statement.setDate(3, Date.valueOf(film.getReleaseDate()));
             statement.setInt(4, film.getDuration());
 
-            // Выполняем запрос
             statement.executeUpdate();
 
-            // Получаем сгенерированный идентификатор
             try (ResultSet rs = statement.getGeneratedKeys()) {
                 if (rs.next()) {
-                    film.setId(rs.getLong(1)); // Устанавливаем сгенерированный ID в объект Film
+                    film.setId(rs.getLong(1));
+                    log.debug("Фильм добавлен с ID: {}", film.getId());
                 } else {
                     throw new SQLException("Не удалось получить сгенерированный идентификатор для фильма");
                 }
             }
 
         } catch (SQLException e) {
+            log.error("Ошибка при добавлении фильма: {}", e.getMessage());
             throw new RuntimeException("Ошибка при добавлении фильма: " + e.getMessage(), e);
         }
 
-        // Добавляем MPA и жанры
         addMpaToFilm(film);
         addGenresToFilm(film);
 
@@ -69,6 +68,7 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film updateFilm(Film film) {
+        log.debug("Обновление фильма: {}", film);
         String sql = "UPDATE films SET name = ?, description = ?, release_date = ?, duration = ? WHERE film_id = ?";
         jdbcTemplate.update(sql, film.getName(), film.getDescription(), film.getReleaseDate(), film.getDuration(), film.getId());
 
@@ -78,61 +78,86 @@ public class FilmDbStorage implements FilmStorage {
         deleteGenresFromFilm(film.getId());
         addGenresToFilm(film);
 
+        log.debug("Фильм обновлен: {}", film);
         return film;
     }
 
     @Override
     public List<Film> getAllFilms() {
+        log.debug("Получение всех фильмов");
         String sql = "SELECT * FROM films";
-        return jdbcTemplate.query(sql, this::mapRowToFilm);
+        List<Film> films = jdbcTemplate.query(sql, this::mapRowToFilm);
+        log.debug("Найдено {} фильмов", films.size());
+        return films;
     }
 
     @Override
     public void deleteFilm(Long id) {
+        log.debug("Удаление фильма с ID: {}", id);
         String sql = "DELETE FROM films WHERE film_id = ?";
         jdbcTemplate.update(sql, id);
+        log.debug("Фильм с ID {} удален", id);
     }
 
     @Override
     public Optional<Film> getFilmById(Long id) {
+        log.debug("Получение фильма по ID: {}", id);
         String sql = "SELECT * FROM films WHERE film_id = ?";
-        return jdbcTemplate.query(sql, this::mapRowToFilm, id).stream().findFirst();
+        Optional<Film> film = jdbcTemplate.query(sql, this::mapRowToFilm, id).stream().findFirst();
+        if (film.isPresent()) {
+            log.debug("Фильм найден: {}", film.get());
+        } else {
+            log.debug("Фильм с ID {} не найден", id);
+        }
+        return film;
     }
 
     public void addLike(Long filmId, Long userId) {
+        log.debug("Добавление лайка для фильма ID: {} от пользователя ID: {}", filmId, userId);
         String sql = "INSERT INTO likes (film_id, user_id) VALUES (?, ?)";
         jdbcTemplate.update(sql, filmId, userId);
+        log.debug("Лайк добавлен");
     }
 
     public void removeLike(Long filmId, Long userId) {
+        log.debug("Удаление лайка для фильма ID: {} от пользователя ID: {}", filmId, userId);
         String sql = "DELETE FROM likes WHERE film_id = ? AND user_id = ?";
         jdbcTemplate.update(sql, filmId, userId);
+        log.debug("Лайк удален");
     }
 
     private void addMpaToFilm(Film film) {
         if (film.getMpa() != null) {
+            log.debug("Добавление MPA для фильма ID: {}", film.getId());
             String sql = "INSERT INTO film_mpa_rating (film_id, mpa_rating_id) VALUES (?, ?)";
             jdbcTemplate.update(sql, film.getId(), film.getMpa().getId());
+            log.debug("MPA добавлен для фильма ID: {}", film.getId());
         }
     }
 
     private void deleteMpaFromFilm(Long filmId) {
+        log.debug("Удаление MPA для фильма ID: {}", filmId);
         String sql = "DELETE FROM film_mpa_rating WHERE film_id = ?";
         jdbcTemplate.update(sql, filmId);
+        log.debug("MPA удален для фильма ID: {}", filmId);
     }
 
     private void addGenresToFilm(Film film) {
         if (film.getGenres() != null && !film.getGenres().isEmpty()) {
+            log.debug("Добавление жанров для фильма ID: {}", film.getId());
             String sql = "INSERT INTO film_genre (film_id, genre_id) VALUES (?, ?)";
             for (Genre genre : film.getGenres()) {
                 jdbcTemplate.update(sql, film.getId(), genre.getId());
+                log.debug("Жанр ID {} добавлен для фильма ID {}", genre.getId(), film.getId());
             }
         }
     }
 
     private void deleteGenresFromFilm(Long filmId) {
+        log.debug("Удаление жанров для фильма ID: {}", filmId);
         String sql = "DELETE FROM film_genre WHERE film_id = ?";
         jdbcTemplate.update(sql, filmId);
+        log.debug("Жанры удалены для фильма ID: {}", filmId);
     }
 
     private Film mapRowToFilm(ResultSet rs, int rowNum) throws SQLException {
@@ -174,6 +199,7 @@ public class FilmDbStorage implements FilmStorage {
         }, film.getId());
         film.setGenres(new HashSet<>(genres));
 
+        log.debug("Фильм маппирован: {}", film);
         return film;
     }
 

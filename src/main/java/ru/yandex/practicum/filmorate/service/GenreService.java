@@ -21,6 +21,7 @@ public class GenreService {
     }
 
     public void validateGenres(Set<Genre> genres) {
+        log.info("Проверка существования жанра");
         if (genres != null && !genres.isEmpty()) {
             for (Genre genre : genres) {
                 if (genre.getId() == null) {
