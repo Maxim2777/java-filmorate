@@ -66,7 +66,8 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public Film updateFilm(Film film) {
         String sql = "UPDATE films SET name = ?, description = ?, release_date = ?, duration = ? WHERE film_id = ?";
-        jdbcTemplate.update(sql, film.getName(), film.getDescription(), film.getReleaseDate(), film.getDuration(), film.getId());
+        jdbcTemplate.update(sql,
+                film.getName(), film.getDescription(), film.getReleaseDate(), film.getDuration(), film.getId());
 
         deleteMpaFromFilm(film.getId());
         addMpaToFilm(film);
