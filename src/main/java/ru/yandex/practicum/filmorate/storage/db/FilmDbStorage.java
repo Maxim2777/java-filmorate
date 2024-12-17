@@ -70,7 +70,8 @@ public class FilmDbStorage implements FilmStorage {
     public Film updateFilm(Film film) {
         log.debug("Обновление фильма: {}", film);
         String sql = "UPDATE films SET name = ?, description = ?, release_date = ?, duration = ? WHERE film_id = ?";
-        jdbcTemplate.update(sql, film.getName(), film.getDescription(), film.getReleaseDate(), film.getDuration(), film.getId());
+        jdbcTemplate.update(sql,
+                film.getName(), film.getDescription(), film.getReleaseDate(), film.getDuration(), film.getId());
 
         deleteMpaFromFilm(film.getId());
         addMpaToFilm(film);

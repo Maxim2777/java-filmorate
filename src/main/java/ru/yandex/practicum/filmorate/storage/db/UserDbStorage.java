@@ -34,7 +34,8 @@ public class UserDbStorage implements UserStorage {
         jdbcTemplate.update(sql, user.getEmail(), user.getLogin(), user.getName(), user.getBirthday());
 
         String queryForId = "SELECT user_id FROM users WHERE email = ? AND login = ? AND name = ? AND birthday = ?";
-        Long userId = jdbcTemplate.queryForObject(queryForId, Long.class, user.getEmail(), user.getLogin(), user.getName(), user.getBirthday());
+        Long userId = jdbcTemplate.queryForObject(queryForId, Long.class,
+                user.getEmail(), user.getLogin(), user.getName(), user.getBirthday());
 
         user.setId(userId);
         log.info("Пользователь успешно добавлен с ID: {}", userId);
@@ -45,7 +46,8 @@ public class UserDbStorage implements UserStorage {
     public User updateUser(User user) {
         log.info("Обновление пользователя с ID: {}", user.getId());
         String sql = "UPDATE users SET email = ?, login = ?, name = ?, birthday = ? WHERE user_id = ?";
-        int rowsUpdated = jdbcTemplate.update(sql, user.getEmail(), user.getLogin(), user.getName(), user.getBirthday(), user.getId());
+        int rowsUpdated = jdbcTemplate.update(sql,
+                user.getEmail(), user.getLogin(), user.getName(), user.getBirthday(), user.getId());
 
         if (rowsUpdated == 0) {
             log.error("Пользователь с ID: {} не найден", user.getId());
