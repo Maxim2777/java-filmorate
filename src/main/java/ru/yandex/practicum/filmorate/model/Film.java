@@ -25,4 +25,9 @@ public class Film {
     private int duration;
     // Поле для хранения лайков
     private Set<Long> likes = new HashSet<>();
+    // рейтинг MPA
+    private MpaRating mpa;
+    // жанры
+    private Set<Genre> genres = new HashSet<>();
+
 }

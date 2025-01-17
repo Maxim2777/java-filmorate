@@ -2,10 +2,12 @@ package ru.yandex.practicum.filmorate.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ResourceNotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
+import ru.yandex.practicum.filmorate.storage.db.UserDbStorage;
 
 import java.util.List;
 
@@ -15,107 +17,123 @@ public class UserService {
     private final UserStorage userStorage;
 
     @Autowired
-    public UserService(UserStorage userStorage) {
+    public UserService(@Qualifier("userDbStorage") UserStorage userStorage) {
+        log.debug("Инициализация UserService с хранилищем: {}", userStorage.getClass().getSimpleName());
         this.userStorage = userStorage;
     }
 
-    // Метод добавления нового пользователя
     public User addUser(User user) {
-        log.info("Начало добавления пользователя: {}", user);
+        log.info("Добавление пользователя: {}", user);
         return userStorage.addUser(user);
     }
 
-    // Метод обновления существующего пользователя
     public User updateUser(User user) {
-        log.info("Начало обновления пользователя: {}", user);
+        log.info("Обновление пользователя: {}", user);
         return userStorage.updateUser(user);
     }
 
-    // Метод получения пользователя по его идентификатору
     public User getUserById(Long id) {
-        log.info("Начало получения пользователя с id: {}", id);
+        log.info("Получение пользователя с ID: {}", id);
         return userStorage.getUserById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Пользователь с id " + id + " не найден"));
+                .orElseThrow(() -> {
+                    log.error("Пользователь с ID {} не найден", id);
+                    return new ResourceNotFoundException("Пользователь с id " + id + " не найден");
+                });
     }
 
-    // Метод получения всех пользователей
     public List<User> getAllUsers() {
-        log.info("Начало получения всех пользователей");
-        return userStorage.getAllUsers();
+        log.info("Получение всех пользователей");
+        List<User> users = userStorage.getAllUsers();
+        log.info("Получено пользователей: {}", users.size());
+        return users;
     }
 
-    // Метод добавления друга.
     public User addFriend(Long userId, Long friendId) {
-        log.info("Начало добавления друга с id: {} к пользователю с id: {}", friendId, userId);
+        log.info("Добавление друга с ID: {} пользователю с ID: {}", friendId, userId);
 
-        log.info("Проверка наличия пользователя с id: {}, к которому хотят добавить друга", userId);
-        User user = userStorage.getUserById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Пользователь с id " + userId + " не найден"));
+        userStorage.getUserById(userId)
+                .orElseThrow(() -> {
+                    log.error("Пользователь с ID {} не найден", userId);
+                    return new ResourceNotFoundException("Пользователь с id " + userId + " не найден");
+                });
 
-        log.info("Проверка наличия друга с id: {}, которого хотят добавить к пользователю", friendId);
-        User friend = userStorage.getUserById(friendId)
-                .orElseThrow(() -> new ResourceNotFoundException("Друг с id " + friendId + " не найден"));
+        userStorage.getUserById(friendId)
+                .orElseThrow(() -> {
+                    log.error("Друг с ID {} не найден", friendId);
+                    return new ResourceNotFoundException("Пользователь с id " + friendId + " не найден");
+                });
 
-        log.info("Добавление друга в список друзей пользователя");
-        user.getFriends().add(friendId);
-        log.info("Добавление пользователя в список друзей друга");
-        friend.getFriends().add(userId);
+        if (userStorage instanceof UserDbStorage) {
+            log.debug("Добавление друга в БД");
+            ((UserDbStorage) userStorage).addFriend(userId, friendId);
+        } else {
+            log.debug("Добавление друга в InMemory хранилище");
+            User user = userStorage.getUserById(userId).orElseThrow();
+            user.getFriends().add(friendId);
+            User friend = userStorage.getUserById(friendId).orElseThrow();
+            friend.getFriends().add(userId);
+            userStorage.updateUser(user);
+            userStorage.updateUser(friend);
+        }
 
-        log.info("Обновление информации о пользователе в хранилище (увеличение числа друзей)");
-        userStorage.updateUser(user);
-        log.info("Обновление информации о друге в хранилище (увеличение числа друзей)");
-        userStorage.updateUser(friend);
-
-        return user;
+        log.info("Друг с ID {} успешно добавлен пользователю с ID {}", friendId, userId);
+        return userStorage.getUserById(userId).orElseThrow();
     }
 
-    // Метод удаления друга.
     public User removeFriend(Long userId, Long friendId) {
-        log.info("Начало удаления друга с id: {} от пользователя с id: {}", friendId, userId);
+        log.info("Удаление друга с ID: {} у пользователя с ID: {}", friendId, userId);
 
-        log.info("Проверка наличия пользователя с id: {}, у которого хотят удалить друга", userId);
-        User user = userStorage.getUserById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Пользователь с id " + userId + " не найден"));
+        userStorage.getUserById(userId)
+                .orElseThrow(() -> {
+                    log.error("Пользователь с ID {} не найден", userId);
+                    return new ResourceNotFoundException("Пользователь с id " + userId + " не найден");
+                });
 
-        log.info("Проверка наличия друга с id: {}, которого хотят удалить у пользователя", friendId);
-        User friend = userStorage.getUserById(friendId)
-                .orElseThrow(() -> new ResourceNotFoundException("Друг с id " + friendId + " не найден"));
+        userStorage.getUserById(friendId)
+                .orElseThrow(() -> {
+                    log.error("Друг с ID {} не найден", friendId);
+                    return new ResourceNotFoundException("Пользователь с id " + friendId + " не найден");
+                });
 
-        log.info("Удаление друга из списка друзей пользователя");
-        user.getFriends().remove(friendId);
-        log.info("Удаление пользователя из списка друзей друга");
-        friend.getFriends().remove(userId);
+        if (userStorage instanceof UserDbStorage) {
+            log.debug("Удаление друга из БД");
+            ((UserDbStorage) userStorage).removeFriend(userId, friendId);
+        } else {
+            log.debug("Удаление друга из InMemory хранилища");
+            User user = userStorage.getUserById(userId).orElseThrow();
+            user.getFriends().remove(friendId);
+            User friend = userStorage.getUserById(friendId).orElseThrow();
+            friend.getFriends().remove(userId);
+            userStorage.updateUser(user);
+            userStorage.updateUser(friend);
+        }
 
-        log.info("Обновление информации о пользователе в хранилище (уменьшение числа друзей)");
-        userStorage.updateUser(user);
-        log.info("Обновление информации о друге в хранилище (уменьшение числа друзей)");
-        userStorage.updateUser(friend);
-
-        return user;
+        log.info("Друг с ID {} успешно удален у пользователя с ID {}", friendId, userId);
+        return userStorage.getUserById(userId).orElseThrow();
     }
 
-    // Метод получения списка общих друзей двух пользователей.
     public List<User> getCommonFriends(Long userId, Long otherId) {
-        log.info("Начало получения общих друзей для пользователей с id: {} и {}", userId, otherId);
+        log.info("Получение общих друзей для пользователей с ID: {} и {}", userId, otherId);
 
-        log.info("Проверка наличия первого пользователя с id: {}", userId);
         User user = userStorage.getUserById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Пользователь с id " + userId + " не найден"));
+                .orElseThrow(() -> {
+                    log.error("Пользователь с ID {} не найден", userId);
+                    return new ResourceNotFoundException("Пользователь с id " + userId + " не найден");
+                });
 
-        log.info("Проверка наличия второго пользователя с id: {}", otherId);
         User other = userStorage.getUserById(otherId)
-                .orElseThrow(() -> new ResourceNotFoundException("Пользователь с id " + otherId + " не найден"));
+                .orElseThrow(() -> {
+                    log.error("Пользователь с ID {} не найден", otherId);
+                    return new ResourceNotFoundException("Пользователь с id " + otherId + " не найден");
+                });
 
-        log.info("Нахождение пересечения списков друзей для получения общих друзей");
         user.getFriends().retainAll(other.getFriends());
-
-        log.info("Преобразование списка ID друзей в список объектов User");
         List<User> commonFriends = user.getFriends().stream()
                 .map(id -> userStorage.getUserById(id)
                         .orElseThrow(() -> new ResourceNotFoundException("Друг с id " + id + " не найден")))
                 .toList();
 
-        log.info("Общие друзья для пользователей с id: {} и {}: {}", userId, otherId, commonFriends);
+        log.info("Общие друзья для пользователей с ID: {} и {} найдены: {}", userId, otherId, commonFriends);
         return commonFriends;
     }
 }
